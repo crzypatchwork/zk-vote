@@ -1,0 +1,150 @@
+# @hicetnunc2000
+
+parameter (or (unit %compute_votes) (or (address %permit) (sapling_transaction %vote 8)));
+storage   (pair (pair (address %admin) (sapling_state %ledger 8)) (pair (big_map %permits address bool) (list %transactions (sapling_transaction 8))));
+code
+  {
+    DUP;
+    CDR;
+    SWAP;
+    CAR;
+    IF_LEFT
+      {
+        SWAP;
+        DUP;
+        DUG 2;
+        CAR;
+        CAR;
+        SENDER;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "WrongCondition: sp.sender == self.data.admin";
+            FAILWITH;
+          };
+        SWAP;
+        DUP;
+        DUG 2;
+        CDR;
+        CDR;
+        ITER
+          {
+            DIG 2;
+            DUP;
+            DUG 3;
+            CAR;
+            CDR;
+            SWAP;
+            SAPLING_VERIFY_UPDATE;
+            IF_SOME
+              {}
+              {
+                PUSH int 17;
+                FAILWITH;
+              };
+            DIG 2;
+            DUP;
+            CDR;
+            SWAP;
+            CAR;
+            CAR;
+            DIG 2;
+            CDR;
+            SWAP;
+            PAIR;
+            PAIR;
+            SWAP;
+          };
+        DROP;
+      }
+      {
+        IF_LEFT
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CAR;
+            CAR;
+            SENDER;
+            COMPARE;
+            EQ;
+            IF
+              {}
+              {
+                PUSH string "WrongCondition: sp.sender == self.data.admin";
+                FAILWITH;
+              };
+            SWAP;
+            DUP;
+            CAR;
+            SWAP;
+            CDR;
+            DUP;
+            CDR;
+            SWAP;
+            CAR;
+            DIG 3;
+            PUSH (option bool) (Some False);
+            SWAP;
+            UPDATE;
+            PAIR;
+            SWAP;
+            PAIR;
+          }
+          {
+            SWAP;
+            DUP;
+            DUG 2;
+            CDR;
+            CAR;
+            SENDER;
+            GET;
+            IF_SOME
+              {}
+              {
+                PUSH bool False;
+              };
+            IF
+              {
+                PUSH string "WrongCondition: ~ self.data.permits.get(sp.sender, default_value = False)";
+                FAILWITH;
+              }
+              {};
+            SWAP;
+            DUP;
+            CAR;
+            SWAP;
+            CDR;
+            DUP;
+            CDR;
+            SWAP;
+            CAR;
+            PUSH (option bool) (Some True);
+            SENDER;
+            UPDATE;
+            PAIR;
+            SWAP;
+            PAIR;
+            DUP;
+            DUG 2;
+            DUP;
+            CAR;
+            SWAP;
+            CDR;
+            CAR;
+            DIG 3;
+            CDR;
+            CDR;
+            DIG 3;
+            CONS;
+            SWAP;
+            PAIR;
+            SWAP;
+            PAIR;
+          };
+      };
+    NIL operation;
+    PAIR;
+  };
